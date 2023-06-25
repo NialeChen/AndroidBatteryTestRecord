@@ -1,6 +1,8 @@
 package com.example.batterytest;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
@@ -25,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private Button startButton;
     private Button stopButton;
     private TextView textView;
-
     private Handler handler;
     private Runnable recordBatteryDataRunnable;
 
@@ -33,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private String csvFilePath;
     private PrintWriter csvWriter;
     long startTimeMillis = System.currentTimeMillis();
+
+    private ShutdownReceiver shutdownReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
         startButton = findViewById(R.id.startButton);
         stopButton = findViewById(R.id.stopButton);
         textView = findViewById(R.id.textView);
+
+        // 注册关机广播接收器
+        registerShutdownReceiver();
 
         handler = new Handler();
         recordBatteryDataRunnable = new Runnable() {
@@ -66,9 +72,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
 
 
 
@@ -159,6 +162,40 @@ public class MainActivity extends AppCompatActivity {
 
         // 格式化时间差并返回
         return String.format("%02d:%02d:%02d", hours, minutes % 60, seconds % 60);
+    }
+
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // 注销关机广播接收器
+        unregisterShutdownReceiver();
+    }
+
+    private void registerShutdownReceiver() {
+        shutdownReceiver = new ShutdownReceiver();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
+        registerReceiver(shutdownReceiver, filter);
+    }
+
+    private void unregisterShutdownReceiver() {
+        if (shutdownReceiver != null) {
+            unregisterReceiver(shutdownReceiver);
+        }
+    }
+
+    private class ShutdownReceiver extends BroadcastReceiver {
+
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && Intent.ACTION_SHUTDOWN.equals(intent.getAction())) {
+                // 在这里执行关机时的操作
+                Toast.makeText(context, "设备即将关机", Toast.LENGTH_SHORT).show();
+                // 例如保存数据或执行必要的清理操作
+                stopRecording();
+            }
+        }
     }
 
 }
