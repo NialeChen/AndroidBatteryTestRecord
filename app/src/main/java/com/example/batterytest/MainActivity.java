@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 recordBatteryData();
-                handler.postDelayed(this, 1000); // 每秒记录一次
+                handler.postDelayed(this, 2000); // 每2秒记录一次
             }
         };
 
@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
 
     @SuppressLint("DefaultLocale")
     private String formatElapsedTime(long elapsedTimeMillis) {
